@@ -21,6 +21,7 @@ from django.db.models import Count
 #     }
 
 
+
 def serialize_post_optimized(post):
     return {
         'title': post.title,
@@ -46,7 +47,8 @@ def index(request):
     most_popular_posts = all_posts.annotate(likes_count=Count("likes", distinct=True),
                                             comments_count=Count("comments", distinct=True)).order_by("-likes_count")[:5]
 
-    fresh_posts = all_posts.order_by('published_at')
+    fresh_posts = all_posts.annotate(likes_count=Count("likes", distinct=True),
+                                            comments_count=Count("comments", distinct=True)).order_by('published_at')
     most_fresh_posts = list(fresh_posts)[-5:]
 
     most_popular_tags = Tag.objects.annotate(tags_count=Count("posts")).order_by("-tags_count")[:5]
