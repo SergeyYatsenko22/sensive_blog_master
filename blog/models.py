@@ -1,13 +1,33 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.db.models import Count
 
 
 class PostQuerySet(models.QuerySet):
     def year (self, year):
         posts_at_year = self.filter(published_at__year=year).order_by("published_at")
         return posts_at_year
+    def popular (self):
+        most_popular = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
+        return most_popular
+    def fetch_with_comments_count (self):
+        most_popular = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
+        most_popular_posts_ids = [post.id for post in most_popular]
+        popular_posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
+            comments_count=Count('comments'))
+        popular_ids_and_comments = popular_posts_with_comments.values_list('id', 'comments_count')
+        popular_count_for_id = dict(popular_ids_and_comments)
+        for post in most_popular:
+            post.comments_count = popular_count_for_id[post.id]
+        return post.comments_count
 
+
+
+class TagQuerySet(models.QuerySet):
+    def popular (self):
+        most_popular = Tag.objects.annotate(tags_count=Count("posts")).order_by("-tags_count")[:5]
+        return most_popular
 
 class Post(models.Model):
     title = models.CharField('Заголовок', max_length=200)
@@ -56,6 +76,8 @@ class Tag(models.Model):
 
     def get_absolute_url(self):
         return reverse('tag_filter', args={'tag_title': self.slug})
+
+    objects = TagQuerySet.as_manager()
 
     class Meta:
         ordering = ['title']
