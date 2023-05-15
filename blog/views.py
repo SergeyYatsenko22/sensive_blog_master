@@ -46,7 +46,7 @@ def serialize_tag(tag):
 
 def index(request):
 
-    most_fresh_posts = Post.objects.prefetch_related('author').order_by('-published_at')[:5]
+    most_fresh_posts = Post.objects.prefetch_related('author').prefetch_related('tags').order_by('-published_at')[:5]
 
     most_popular_tags = Tag.objects.popular()[:5]
 
@@ -90,21 +90,6 @@ def post_detail(request, slug):
     most_popular_tags = Tag.objects.popular()[:5]
 
 
-    # most_popular_posts = all_posts.order_by('-likes_count')[:5]
-    #
-    # most_popular_posts_ids = [post.id for post in most_popular_posts]
-    #
-    # popular_posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
-    #     comments_count=Count('comments'))
-    #
-    # popular_ids_and_comments = popular_posts_with_comments.values_list('id', 'comments_count')
-    #
-    # popular_count_for_id = dict(popular_ids_and_comments)
-    #
-    # for post in most_popular_posts:
-    #     post.comments_count = popular_count_for_id[post.id]
-
-
 
     context = {
         'post': serialized_post,
@@ -121,25 +106,18 @@ def tag_filter(request, tag_title):
 
     most_popular_tags = Tag.objects.popular()[:5]
 
-    # all_posts = Post.objects.prefetch_related('author').annotate(likes_count=Count('likes'))
-    # most_popular_posts = all_posts.order_by('-likes_count')[:5]
     related_posts = tag.posts.all()[:20]
 
-    # most_popular_posts_ids = [post.id for post in most_popular_posts]
     related_posts_ids = [post.id for post in related_posts]
 
-    # popular_posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
-    #     comments_count=Count('comments'))
+
     related_posts_with_comments = Post.objects.filter(id__in=related_posts_ids).annotate(
         comments_count=Count('comments'))
-    # popular_ids_and_comments = popular_posts_with_comments.values_list('id', 'comments_count')
+
     related_ids_and_comments = related_posts_with_comments.values_list('id', 'comments_count')
-    #
-    # popular_count_for_id = dict(popular_ids_and_comments)
+
     related_count_for_id = dict(related_ids_and_comments)
-    #
-    # for post in most_popular_posts:
-    #     post.comments_count = popular_count_for_id[post.id]
+
 
     for post in related_posts:
         post.comments_count = related_count_for_id[post.id]
