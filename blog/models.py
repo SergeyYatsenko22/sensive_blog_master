@@ -5,16 +5,15 @@ from django.db.models import Count
 
 
 class PostQuerySet(models.QuerySet):
-    def year (self, year):
+    def year(self, year):
         posts_at_year = self.filter(published_at__year=year).order_by("published_at")
         return posts_at_year
 
-    def popular (self):
+    def popular(self):
         most_popular = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
         return most_popular
 
-
-    def fetch_with_comments_count (self):
+    def fetch_with_comments_count(self):
         most_popular = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
         most_popular_posts_ids = [post.id for post in most_popular]
         popular_posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
@@ -26,11 +25,11 @@ class PostQuerySet(models.QuerySet):
         return post.comments_count
 
 
-
 class TagQuerySet(models.QuerySet):
-    def popular (self):
+    def popular(self):
         most_popular = Tag.objects.annotate(tags_count=Count("posts")).order_by("-tags_count")
         return most_popular
+
 
 class Post(models.Model):
     title = models.CharField('Заголовок', max_length=200)
