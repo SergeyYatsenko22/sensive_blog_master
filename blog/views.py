@@ -43,7 +43,7 @@ def index(request):
 def post_detail(request, slug):
     all_posts = Post.objects.prefetch_related('author').prefetch_related('tags').annotate(likes_count=Count('likes'))
     post = get_object_or_404(all_posts, slug=slug)
-    comments = Comment.objects.filter(post=post)
+    comments = post.comments.all()
     serialized_comments = []
     for comment in comments:
         serialized_comments.append({
