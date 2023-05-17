@@ -58,7 +58,6 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-*.sqlite3
 *.sqlite3-journal
 
 # Flask stuff:
@@ -136,3 +135,11 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+.idea/
+*.pyc
+*.pyd
+*.pyo
+.vscode
+Thumbs.db
+DS_Store 
