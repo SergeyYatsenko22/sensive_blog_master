@@ -143,3 +143,4 @@ cython_debug/
 .vscode
 Thumbs.db
 DS_Store 
+media
