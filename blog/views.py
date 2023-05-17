@@ -4,13 +4,13 @@ from django.db.models import Count
 from django.db.models import Prefetch
 
 
+
 def serialize_post(post):
     return {
         'title': post.title,
         'teaser_text': post.text[:200],
         'author': post.author.username,
-        'comments_amount': Post.objects.popular().prefetch_related('author')[:5] \
-            .fetch_with_comments_count(),
+        'comments_amount': post.comments.count(),
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
@@ -19,11 +19,19 @@ def serialize_post(post):
     }
 
 
+
+
 def serialize_tag(tag):
     return {
         'title': tag.title,
-        'posts_with_tag': Post.objects.prefetch_related(Prefetch("tags", queryset=
-        Tag.objects.annotate(Count("posts")))),
+        # 'posts_with_tag': Post.objects.prefetch_related(Prefetch("tags", queryset=
+        # Tag.objects.annotate(Count("posts")))).count,
+
+
+        'posts_with_tag': tag.posts.count,
+
+        # 'posts_with_tag': len(Post.objects.filter(tags=tag)),
+
 
     }
 
@@ -35,8 +43,8 @@ def index(request):
 
     context = {
         'most_popular_posts': [
-            serialize_post(post) for post in Post.objects.popular().prefetch_related('author')
-                                             .prefetch_related('tags')[:5]
+            serialize_post(post) for post in Post.objects.popular().prefetch_related('author')[:5]
+            .fetch_with_comments_count()
         ],
         'page_posts': [serialize_post(post) for post in most_fresh_posts],
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
