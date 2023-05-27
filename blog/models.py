@@ -11,8 +11,7 @@ class PostQuerySet(models.QuerySet):
         return posts_at_year
 
     def popular(self):
-        most_popular = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
-        return most_popular
+        return self.annotate(likes_count=Count('likes')).order_by('-likes_count')
 
     def fetch_with_comments_count(self):
         most_popular_posts_ids = [post.id for post in self]
@@ -24,13 +23,13 @@ class PostQuerySet(models.QuerySet):
             post.comments_count = popular_count_for_id[post.id]
         return self
 
+    def post_tags_related(self):
+        return self.prefetch_related(Prefetch('tags', queryset=Tag.objects.popular()))
+
 
 class TagQuerySet(models.QuerySet):
     def popular(self):
-        most_popular = Tag.objects.prefetch_related(Prefetch("posts",
-                                                             queryset=Post.objects.annotate(
-                                                                 tags_count=Count("tags")).order_by("-tags_count")))
-        return most_popular
+        return self.annotate(posts_count=Count('posts'))
 
 
 class Post(models.Model):
